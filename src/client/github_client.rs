@@ -14,8 +14,6 @@ pub struct GitHubClient {
 pub struct GitHubClientBuilder {
     timeout_in_secs: Option<u64>,
     user_agent_string: String,
-    username: Option<String>,
-    password: Option<String>,
     token: Option<String>,
 }
 
@@ -24,8 +22,6 @@ impl GitHubClientBuilder {
         self::GitHubClientBuilder {
             timeout_in_secs: None,
             user_agent_string: String::new(),
-            username: None,
-            password: None,
             token: None
         }
     }
@@ -40,14 +36,8 @@ impl GitHubClientBuilder {
         self
     }
 
-    pub fn with_bearer_token(&mut self, bearer_token: &str) -> &mut GitHubClientBuilder {
-        self.token = Some(bearer_token.to_string());
-        self
-    }
-
-    pub fn with_basic_auth(&mut self, username: &str, password: &str) -> & mut GitHubClientBuilder {
-        self.username = Some(username.to_string());
-        self.password = Some(password.to_string());
+    pub fn with_oauth_token(&mut self, oauth_token: &str) -> &mut GitHubClientBuilder {
+        self.token = Some(oauth_token.to_string());
         self
     }
 
@@ -57,48 +47,37 @@ impl GitHubClientBuilder {
 
         GitHubClient {
             organizations: Organizations {
-                client: client,
+                client,
                 base_url: root_document.organization_url.unwrap()
             },
         }
     }
 
     fn get_client(&self) -> Client {
-        reqwest::ClientBuilder::new()
-            .timeout(
-                Duration::from_secs(self.timeout_in_secs.unwrap_or(10)))
-            .default_headers(GitHubClientBuilder::get_default_headers(self))
-            .build()
-            .unwrap()
-    }
+        let builder =
+            reqwest::ClientBuilder::new()
+                .timeout(
+                    Duration::from_secs(self.timeout_in_secs.unwrap_or(10)));
 
-    fn get_default_headers(&self) -> HeaderMap<HeaderValue> {
         let mut header_map = HeaderMap::new();
-
         header_map.append(
             header::USER_AGENT,
             HeaderValue::from_str(self.user_agent_string.as_str()).unwrap()
         );
 
-        match &self.username {
-            None => match &self.token {
-                None => header_map,
-                Some(token) => {
-                    let bearer_header_value = format!("Bearer {}", token);
-                    header_map.append(
-                        header::AUTHORIZATION,
-                        HeaderValue::from_str(bearer_header_value.as_str()).unwrap());
-                    header_map
-                }
-            },
-            Some(username) => {
-                let auth_header_value = format!("{}:{}", username, &self.password.as_ref().unwrap());
+        match &self.token {
+            None => {}
+            Some(token) => {
                 header_map.append(
                     header::AUTHORIZATION,
-                    HeaderValue::from_str(auth_header_value.as_str()).unwrap());
-                header_map
+                    HeaderValue::from_str(format!("token {}", token).as_str()).unwrap());
             }
         }
+
+        builder
+            .default_headers(header_map)
+            .build()
+            .unwrap()
     }
 
     pub fn get_root_document(client: &Client) -> RootDocument {
