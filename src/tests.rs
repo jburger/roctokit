@@ -41,10 +41,11 @@ fn get_unauthenticated_client() -> GitHubClient {
 fn get_token_auth_client() -> GitHubClient {
     let mut builder = GitHubClientBuilder::new();
     let token = env::var("github_token");
+    assert!(token.is_ok());
 
     builder
         .for_user_agent(EXPECTED_ORG_NAME)
-        .with_oauth_token(token.unwrap().as_str())
+        .with_oauth_token(token.unwrap_or_default().as_str())
         .build()
 }
 
