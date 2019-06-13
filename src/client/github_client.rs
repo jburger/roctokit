@@ -1,5 +1,5 @@
 use std::time::Duration;
-use reqwest::Client;
+use reqwest::{Client};
 use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::header;
 use crate::client::organizations::{ Organizations };
@@ -60,7 +60,6 @@ impl GitHubClientBuilder {
                 client: client,
                 base_url: root_document.organization_url.unwrap()
             },
-
         }
     }
 
@@ -103,11 +102,15 @@ impl GitHubClientBuilder {
     }
 
     pub fn get_root_document(client: &Client) -> RootDocument {
-        client
+        let result = client
             .get(DEFAULT_BASE_URL)
-            .send()
-            .unwrap()
+            .send();
+        let mut response = result.unwrap();
+        if !response.status().is_success() {
+            panic!("unable to read the root resource from {base_url}: {error_code}", base_url = DEFAULT_BASE_URL, error_code = response.status());
+        }
+        response
             .json::<RootDocument>()
-            .unwrap()
+            .unwrap_or(RootDocument::new())
     }
 }

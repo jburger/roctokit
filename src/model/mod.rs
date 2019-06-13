@@ -35,6 +35,44 @@ pub struct RootDocument {
     pub user_search_url: Option<String>
 }
 
+impl RootDocument {
+    pub fn new() -> RootDocument {
+        RootDocument {
+            current_user_url: None,
+            current_user_authorizations_html_url: None,
+            authorizations_url: None,
+            code_search_url: None,
+            commit_search_url: None,
+            emails_url: None,
+            emojis_url: None,
+            events_url: None,
+            feeds_url: None,
+            followers_url: None,
+            following_url: None,
+            gists_url: None,
+            hub_url: None,
+            issue_search_url: None,
+            issues_url: None,
+            keys_url: None,
+            notifications_url: None,
+            organization_repositories_url: None,
+            organization_url: None,
+            public_gists_url: None,
+            rate_limit_url: None,
+            repository_url: None,
+            repository_search_url: None,
+            current_user_repositories_url: None,
+            starred_url: None,
+            starred_gists_url: None,
+            team_url: None,
+            user_url: None,
+            user_organizations_url: None,
+            user_repositories_url: None,
+            user_search_url: None
+        }
+    }
+}
+
 #[derive(Deserialize)]
 pub struct Organization {
     pub name: String
