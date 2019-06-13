@@ -1,0 +1,13 @@
+[package]
+name = "roctokit"
+version = "0.1.0"
+authors = ["jim <jim@theburge.co>"]
+edition = "2018"
+description = "Comprehensive Rust wrapper for the Github API v3"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+futures = "0.1.27"
+serde = "1.0.92"
+serde_json = "1.0.39"
+reqwest = "0.9.18"
