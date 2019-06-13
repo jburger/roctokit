@@ -3,8 +3,8 @@ extern crate serde_json;
 extern crate serde;
 extern crate reqwest;
 
-mod client;
-mod model;
+pub mod client;
+pub mod model;
 
 #[cfg(test)]
 mod tests;
