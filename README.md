@@ -32,7 +32,7 @@ let client =
 let tanz_industries = 
     client
         .organizations
-        .find("Tanz industries international")
+        .get_by_name("Tanz industries international")
         .unwrap();
 println!("{}", tanz_industries.name);
 ```

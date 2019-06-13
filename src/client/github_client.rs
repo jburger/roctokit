@@ -1,14 +1,12 @@
 use std::time::Duration;
 use reqwest::{Client};
-use reqwest::header::{HeaderMap, HeaderValue};
-use reqwest::header;
-use crate::client::organizations::{ Organizations };
-use crate::model::{RootDocument};
-
+use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, AUTHORIZATION};
+use crate::model::Organization;
+use crate::model::RootDocument;
 const DEFAULT_BASE_URL: &str = "https://api.github.com";
 
 pub struct GitHubClient {
-    pub organizations: Organizations,
+    pub organizations: OrganizationsRepository,
 }
 
 pub struct GitHubClientBuilder {
@@ -46,9 +44,9 @@ impl GitHubClientBuilder {
         let root_document = GitHubClientBuilder::get_root_document(&client);
 
         GitHubClient {
-            organizations: Organizations {
+            organizations: OrganizationsRepository {
                 client,
-                base_url: root_document.organization_url.unwrap()
+                base_url: root_document.organization_url.unwrap(),
             },
         }
     }
@@ -61,7 +59,7 @@ impl GitHubClientBuilder {
 
         let mut header_map = HeaderMap::new();
         header_map.append(
-            header::USER_AGENT,
+            USER_AGENT,
             HeaderValue::from_str(self.user_agent_string.as_str()).unwrap()
         );
 
@@ -69,7 +67,7 @@ impl GitHubClientBuilder {
             None => {}
             Some(token) => {
                 header_map.append(
-                    header::AUTHORIZATION,
+                    AUTHORIZATION,
                     HeaderValue::from_str(format!("token {}", token).as_str()).unwrap());
             }
         }
@@ -91,5 +89,32 @@ impl GitHubClientBuilder {
         response
             .json::<RootDocument>()
             .unwrap_or(RootDocument::new())
+    }
+}
+
+pub struct OrganizationsRepository {
+    pub client: Client,
+    pub base_url: String,
+}
+
+impl OrganizationsRepository {
+    pub fn get_by_name(&mut self, name: &str) -> Organization {
+        let url = self.base_url.as_str().replace("{org}", name);
+        let result = self.client.get(url.as_str()).send();
+
+        match result {
+            Ok(mut response) => {
+                let x = response.json::<Organization>();
+                match x {
+                    Ok(org) => org,
+                    Err(error) => {
+                        panic!(format!("{}", error));
+                    }
+                }
+            },
+            Err(error) => {
+               panic!(format!("{}", error));
+            }
+        }
     }
 }
