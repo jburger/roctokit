@@ -1,5 +1,9 @@
 # Roctokit
 
+|          |status|
+|----------|------|
+| CI build |[![Build Status](https://travis-ci.com/jburger/roctokit.svg?branch=master)](https://travis-ci.com/jburger/roctokit)|
+
 Roctokit is a Github v3 API Client, built entirely in rust, using `reqwest` and `serde_json` under the hood.
 
 > Roctokit is currently under development and is not yet complete
