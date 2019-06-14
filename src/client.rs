@@ -142,7 +142,9 @@ impl OrganizationsRepository {
     /// # Examples
     /// ```
     /// use roctokit::client::GitHubClientBuilder;
-    /// let mut client = GitHubClientBuilder::new().build();
+    /// let mut client = GitHubClientBuilder::new()
+    ///     .for_user_agent("roctokit")
+    ///     .build();
     /// let github = client.organizations.get_by_name("github");
     /// ```
     pub fn get_by_name(&mut self, name: &str) -> Organization {
