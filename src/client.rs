@@ -1,7 +1,7 @@
 use std::time::Duration;
 use reqwest::{Client};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, AUTHORIZATION};
-use crate::model::Organization;
+use crate::model::{Organization, OrganizationSummary};
 use crate::model::RootDocument;
 const DEFAULT_BASE_URL: &str = "https://api.github.com";
 
@@ -158,5 +158,9 @@ impl OrganizationsRepository {
                panic!(format!("{}", error));
             }
         }
+    }
+
+    pub fn get_all_for_user(&self) -> Vec<OrganizationSummary> {
+        let result = self.client.get(format!("{}/user/orgs", DEFAULT_BASE_URL).as_str()).send();
     }
 }
