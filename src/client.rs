@@ -16,6 +16,13 @@ pub struct GitHubClientBuilder {
 }
 
 impl GitHubClientBuilder {
+    /// Creates a factory that configures a `GitHubClient`
+    /// # Examples
+    ///
+    ///  ```
+    /// use roctokit::client::{GitHubClientBuilder};
+    /// let builder = GitHubClientBuilder::new();
+    /// ```
     pub fn new() -> GitHubClientBuilder {
         self::GitHubClientBuilder {
             timeout_in_secs: None,
@@ -24,21 +31,53 @@ impl GitHubClientBuilder {
         }
     }
 
+    /// Sets the timeout for HTTP requests
+    /// # Examples
+    /// ```
+    /// use roctokit::client::{GitHubClientBuilder};
+    /// let builder =
+    ///     GitHubClientBuilder::new()
+    ///         .with_timeout(20); // 20 seconds
+    /// ```
     pub fn with_timeout(&mut self, timeout_in_seconds: u64) -> &mut GitHubClientBuilder {
         self.timeout_in_secs = Some(timeout_in_seconds);
         self
     }
 
+    /// The github API allows for callers to identify themselves using a user agent string, this method sets the agent for all HTTP calls
+    /// # Examples
+    /// ```
+    /// use roctokit::client::{GitHubClientBuilder};
+    /// let builder =
+    ///     GitHubClientBuilder::new()
+    ///         .for_user_agent("Agent Smith");
+    /// ```
     pub fn for_user_agent(&mut self, user_agent_string: &str) -> &mut GitHubClientBuilder {
         self.user_agent_string = user_agent_string.to_string();
         self
     }
 
+    /// Authenticate using an GitHub personal access OAUTH token
+    /// # Examples
+    /// ```
+    /// use roctokit::client::{GitHubClientBuilder};
+    /// let builder =
+    ///     GitHubClientBuilder::new()
+    ///         .with_oauth_token("token goes here");
+    /// ```
     pub fn with_oauth_token(&mut self, oauth_token: &str) -> &mut GitHubClientBuilder {
         self.token = Some(oauth_token.to_string());
         self
     }
 
+    /// Build a `GitHubClient` to begin interrogating the GitHub API
+    /// # Examples
+    /// ```
+    /// use roctokit::client::{GitHubClientBuilder};
+    /// let mut client =
+    ///     GitHubClientBuilder::new()
+    ///         .build();
+    /// ```
     pub fn build(&self) -> GitHubClient {
         let client = self.get_client();
         let root_document = GitHubClientBuilder::get_root_document(&client);
@@ -78,7 +117,7 @@ impl GitHubClientBuilder {
             .unwrap()
     }
 
-    pub fn get_root_document(client: &Client) -> RootDocument {
+    fn get_root_document(client: &Client) -> RootDocument {
         let result = client
             .get(DEFAULT_BASE_URL)
             .send();
@@ -88,7 +127,7 @@ impl GitHubClientBuilder {
         }
         response
             .json::<RootDocument>()
-            .unwrap_or(RootDocument::new())
+            .unwrap()
     }
 }
 
@@ -98,6 +137,14 @@ pub struct OrganizationsRepository {
 }
 
 impl OrganizationsRepository {
+    /// Get an organization by name
+    ///
+    /// # Examples
+    /// ```
+    /// use roctokit::client::GitHubClientBuilder;
+    /// let mut client = GitHubClientBuilder::new().build();
+    /// let github = client.organizations.get_by_name("github");
+    /// ```
     pub fn get_by_name(&mut self, name: &str) -> Organization {
         let url = self.base_url.as_str().replace("{org}", name);
         let result = self.client.get(url.as_str()).send();

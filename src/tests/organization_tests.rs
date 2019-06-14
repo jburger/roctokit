@@ -1,4 +1,4 @@
-use crate::client::github_client::{GitHubClient, GitHubClientBuilder};
+use crate::client::{GitHubClient, GitHubClientBuilder};
 use crate::model::Organization;
 use std::env;
 use reqwest::Client;
@@ -38,13 +38,10 @@ fn org_result_from_roctokit_matches_http_call_result() {
     }
 }
 
-
-
-
 fn get_token_auth_client() -> GitHubClient {
     let mut builder = GitHubClientBuilder::new();
     let token = env::var("github_token");
-    assert!(token.is_ok());
+    assert!(token.is_ok(), "Please make sure you have a 'github_token' environment variable set");
 
     builder
         .for_user_agent(EXPECTED_ORG_NAME)
