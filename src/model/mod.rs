@@ -130,7 +130,7 @@ pub struct Organization {
     pub collaborators: Option<u64>,
     pub billing_email: Option<String>,
     pub default_repository_permission: Option<String>,
-    pub members_can_create_repositories: bool,
+    pub members_can_create_repositories: Option<bool>,
     pub two_factor_requirement_enabled: Option<bool>,
     pub plan: Option<GitHubPlanInfo>
 }
