@@ -50,7 +50,7 @@ impl GitHubClientBuilder {
     /// use roctokit::client::{GitHubClientBuilder};
     /// let builder =
     ///     GitHubClientBuilder::new()
-    ///         .for_user_agent("Agent Smith");
+    ///         .for_user_agent("roctokit");
     /// ```
     pub fn for_user_agent(&mut self, user_agent_string: &str) -> &mut GitHubClientBuilder {
         self.user_agent_string = user_agent_string.to_string();
@@ -76,6 +76,7 @@ impl GitHubClientBuilder {
     /// use roctokit::client::{GitHubClientBuilder};
     /// let mut client =
     ///     GitHubClientBuilder::new()
+    ///         .for_user_agent("roctokit")
     ///         .build();
     /// ```
     pub fn build(&self) -> GitHubClient {

@@ -3,6 +3,7 @@ use crate::model::Organization;
 use std::env;
 
 const EXPECTED_ORG_NAME: &str = "silentec";
+const USER_AGENT: &str = "roctokit";
 
 #[test]
 fn it_finds_organizations_token_auth() {
@@ -18,7 +19,7 @@ fn get_test_org() -> Organization {
 
 fn get_token_auth_client() -> GitHubClient {
     let mut builder = GitHubClientBuilder::new();
-    builder.for_user_agent(EXPECTED_ORG_NAME);
+    builder.for_user_agent(USER_AGENT);
 
     match env::var("github_token") {
         Ok(token) =>
