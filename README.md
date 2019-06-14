@@ -1,5 +1,9 @@
 # Roctokit
 
+|          |status|
+|----------|------|
+| CI build |[![Build Status](https://travis-ci.com/jburger/roctokit.svg?branch=master)](https://travis-ci.com/jburger/roctokit)|
+
 Roctokit is a Github v3 API Client, built entirely in rust, using `reqwest` and `serde_json` under the hood.
 
 > Roctokit is currently under development and is not yet complete
@@ -12,7 +16,6 @@ Roctokit is a Github v3 API Client, built entirely in rust, using `reqwest` and 
 "roctokit" = "0.1.0"
 ```
 #### Creating an anonymous client
-
 ```rust
 let client = 
     GitHubClientBuilder::new()
@@ -32,9 +35,7 @@ let client =
 let tanz_industries = 
     client
         .organizations
-        .find("Tanz industries international")
+        .get_by_name("Tanz industries international")
         .unwrap();
 println!("{}", tanz_industries.name);
 ```
-
-
