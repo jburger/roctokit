@@ -70,15 +70,7 @@ impl GitHubClientBuilder {
         self
     }
 
-    /// Build a `GitHubClient` to begin interrogating the GitHub API.
-    /// # Examples
-    /// ```
-    /// use roctokit::client::{GitHubClientBuilder};
-    /// let mut client =
-    ///     GitHubClientBuilder::new()
-    ///         .for_user_agent("roctokit")
-    ///         .build();
-    /// ```
+    /// Build a `GitHubClient` to begin interrogating the GitHub API```
     pub fn build(&self) -> GitHubClient {
         let client = self.get_client();
         let root_document = GitHubClientBuilder::get_root_document(&client);
