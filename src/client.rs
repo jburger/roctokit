@@ -16,7 +16,7 @@ pub struct GitHubClientBuilder {
 }
 
 impl GitHubClientBuilder {
-    /// Creates a factory that configures a `GitHubClient`
+    /// Creates a factory that configures a `GitHubClient`.
     /// # Examples
     ///
     ///  ```
@@ -31,7 +31,7 @@ impl GitHubClientBuilder {
         }
     }
 
-    /// Sets the timeout for HTTP requests
+    /// Sets the timeout for HTTP requests.
     /// # Examples
     /// ```
     /// use roctokit::client::{GitHubClientBuilder};
@@ -44,7 +44,7 @@ impl GitHubClientBuilder {
         self
     }
 
-    /// The github API allows for callers to identify themselves using a user agent string, this method sets the agent for all HTTP calls
+    /// The github API allows for callers to identify themselves using a user agent string, this method sets the agent for all HTTP calls.
     /// # Examples
     /// ```
     /// use roctokit::client::{GitHubClientBuilder};
@@ -70,7 +70,7 @@ impl GitHubClientBuilder {
         self
     }
 
-    /// Build a `GitHubClient` to begin interrogating the GitHub API
+    /// Build a `GitHubClient` to begin interrogating the GitHub API.
     /// # Examples
     /// ```
     /// use roctokit::client::{GitHubClientBuilder};
@@ -138,7 +138,7 @@ pub struct OrganizationsRepository {
 }
 
 impl OrganizationsRepository {
-    /// Get an organization by name
+    /// Get an organization by name.
     ///
     /// # Examples
     /// ```
