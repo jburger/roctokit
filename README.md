@@ -39,3 +39,15 @@ let tanz_industries =
         .unwrap();
 println!("{}", tanz_industries.name);
 ```
+
+### Development
+
+The tests are essentially E2E tests, as such the following environment variables need to be setup
+```bash
+export github_token=<personal access token> # Can be obtained via Github UI
+export RUST_BACKTRACE=1 #for the stacktraces in test error output
+```
+Tests can then be run using 
+```bash
+# cargo test
+```
