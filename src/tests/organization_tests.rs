@@ -11,6 +11,13 @@ fn it_finds_organizations_token_auth() {
     assert_eq!(organization_result.to_string(), "org: silentec 24204496  https://api.github.com/orgs/silentec");
 }
 
+#[test]
+fn it_retrieves_all_organizations_for_a_user() {
+    let client = get_token_auth_client();
+    let users_orgs = client.organizations.get_all_for_user();
+    assert!(users_orgs.len() > 0);
+}
+
 fn get_test_org() -> Organization {
     let mut client = get_token_auth_client();
     let organization_result = client.organizations.get_by_name(EXPECTED_ORG_NAME);

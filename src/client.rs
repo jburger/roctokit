@@ -135,32 +135,56 @@ impl OrganizationsRepository {
     /// # Examples
     /// ```
     /// use roctokit::client::GitHubClientBuilder;
+    /// use std::env;
     /// let mut client = GitHubClientBuilder::new()
     ///     .for_user_agent("roctokit")
+    ///     .with_oauth_token(env::var("github_token").unwrap().as_str())
     ///     .build();
+    ///
     /// let github = client.organizations.get_by_name("github");
     /// ```
     pub fn get_by_name(&mut self, name: &str) -> Organization {
         let url = self.base_url.as_str().replace("{org}", name);
-        let result = self.client.get(url.as_str()).send();
+        self.get(url)
+    }
 
+    /// Get all organizations for the authenticated user. Must be authenticated.
+    ///
+    /// # Examples
+    /// ```
+    /// use roctokit::client::GitHubClientBuilder;
+    /// use std::env;
+    /// let mut client = GitHubClientBuilder::new()
+    ///     .for_user_agent("roctokit")
+    ///     .with_oauth_token(env::var("github_token").unwrap().as_str())
+    ///     .build();
+    ///
+    /// let github = client.organizations.get_all_for_user();
+    /// ```
+    /// # Panics
+    /// - When the caller is unauthenticated
+    pub fn get_all_for_user(&self) -> Vec<OrganizationSummary> {
+        self.get::<Vec<OrganizationSummary>>(format!("{}/user/orgs", DEFAULT_BASE_URL))
+    }
+
+    pub fn get<T>(&self, url: String) -> T where for<'de> T: serde::Deserialize<'de> {
+        let result = self.client.get(url.as_str()).send();
         match result {
             Ok(mut response) => {
-                let x = response.json::<Organization>();
-                match x {
+                if !response.status().is_success() {
+                    panic!(format!("Unable to access resource: {}", response.status()));
+                }
+                let deserialized = response.json::<T>();
+                match deserialized {
                     Ok(org) => org,
                     Err(error) => {
-                        panic!(format!("{}", error));
+                        panic!(format!("Unable to deserialize response body: {}", error));
                     }
                 }
             },
             Err(error) => {
-               panic!(format!("{}", error));
+                panic!(format!("Unable to complete HTTP request: {}", error));
             }
         }
-    }
-
-    pub fn get_all_for_user(&self) -> Vec<OrganizationSummary> {
-        let result = self.client.get(format!("{}/user/orgs", DEFAULT_BASE_URL).as_str()).send();
     }
 }
