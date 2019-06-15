@@ -3,110 +3,11 @@ use reqwest::{Client};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, AUTHORIZATION};
 use serde::{Deserialize};
 use crate::clients::organizations::OrganizationsClient;
+pub mod organizations;
+mod api;
 
 fn get_root_url() -> &'static str {
     "https://api.github.com"
-}
-
-pub trait RootClientEx {
-    fn get_root_document(&self) -> RootDocument;
-}
-
-impl RootClientEx for Client {
-
-    fn get_root_document(&self) -> RootDocument {
-        let result = self
-            .get(get_root_url())
-            .send();
-        let mut response = result.unwrap();
-        if !response.status().is_success() {
-            panic!("unable to read the root resource from {base_url}: {error_code}", base_url = get_root_url(), error_code = response.status());
-        }
-        response
-            .json::<RootDocument>()
-            .unwrap()
-    }
-}
-
-pub mod organizations;
-
-trait ApiClient {
-    fn get_client(&self) -> &Client;
-
-    fn get<T>(&self, route: &str) -> T where for<'de> T: serde::Deserialize<'de> {
-        let result = self.get_client().get(route).send();
-        match result {
-            Ok(mut response) => {
-                if !response.status().is_success() {
-                    panic!(format!("Unable to access resource: {}", response.status()));
-                }
-                let deserialized = response.json::<T>();
-                match deserialized {
-                    Ok(resource) => resource,
-                    Err(error) => {
-                        panic!(format!("Unable to deserialize response body: {}", error));
-                    }
-                }
-            },
-            Err(error) => {
-                panic!(format!("Unable to complete HTTP request: {}", error));
-            }
-        }
-    }
-
-    fn get_many<T>(&self, route: &str, since: Option<u64>, limit: Option<u64>) -> Vec<T> where for<'de> T: serde::Deserialize<'de> {
-        use regex::Regex;
-
-        let limit = limit.unwrap_or(1000);
-        let client = self.get_client();
-
-        let mut response= client.get(format!("{}?since={}",route, since.unwrap_or(1)).as_str()).send().unwrap();
-        let mut resources = Vec::<T>::new();
-        let mut proceed: bool = true;
-
-        while proceed {
-            let deserialized = response.json::<Vec<T>>();
-
-            match deserialized {
-                Ok(mut result) => {
-                    resources.append(&mut result);
-                    if resources.len() > limit as usize {
-                        resources.truncate(limit as usize);
-                        break;
-                    }
-                },
-                Err(error) => {
-                    panic!(format!("Unable to deserialize response body: {}", error));
-                }
-            }
-
-            proceed = match response.headers().get("Link") {
-                None => {
-                   false
-                },
-                Some(link_header) => {
-                    let x: Result<&str, _> = link_header.to_str();
-                    match x {
-                        Err(_) => {
-                            false
-                        },
-                        Ok(header) => {
-                            let links: Vec<&str> = header.split(";").collect();
-                            if links.len() > 0 {
-                                let rgx = Regex::new(r"[<>]").unwrap();
-                                let url = rgx.replace_all(links[0], "").to_string();
-                                response = client.get(url.as_str()).send().unwrap();
-                                true
-                            } else {
-                                false
-                            }
-                        },
-                    }
-                },
-            }
-        }
-        resources
-    }
 }
 
 pub struct GitHubClient {
@@ -213,10 +114,26 @@ impl GitHubClientBuilder {
             .build()
             .unwrap()
     }
-
-
 }
 
+pub trait RootClientEx {
+    fn get_root_document(&self) -> RootDocument;
+}
+
+impl RootClientEx for Client {
+    fn get_root_document(&self) -> RootDocument {
+        let result = self
+            .get(get_root_url())
+            .send();
+        let mut response = result.unwrap();
+        if !response.status().is_success() {
+            panic!("unable to read the root resource from {base_url}: {error_code}", base_url = get_root_url(), error_code = response.status());
+        }
+        response
+            .json::<RootDocument>()
+            .unwrap()
+    }
+}
 
 #[derive(Deserialize)]
 pub struct RootDocument {

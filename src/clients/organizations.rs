@@ -2,7 +2,7 @@ use std::string::ToString;
 use reqwest::Client;
 use serde::{Serialize, Deserialize};
 
-use crate::clients::{ApiClient, RootClientEx, get_root_url};
+use crate::clients::{api::{ApiClient}, get_root_url, RootClientEx};
 
 pub struct OrganizationsClient {
     pub client: Client,
@@ -57,11 +57,11 @@ impl OrganizationsClient {
     /// Get all organizations, this can take a while.
     /// todo: asyncrony
     pub fn all(&self) -> Vec<OrganizationSummary> {
-        self.get_many::<OrganizationSummary>(format!("{}/organizations", get_root_url()).as_str(), Some(1), Some(std::u64::MAX))
+        self.get_many::<OrganizationSummary>(format!("{}/organizations", get_root_url()).as_str(), Some(1), Some(std::usize::MAX))
     }
 
     /// Get a window of results starting at `since` for a maximum of `limit` items.
-    pub fn some(&self, since: u64, limit: u64) -> Vec<OrganizationSummary> {
+    pub fn some(&self, since: usize, limit: usize) -> Vec<OrganizationSummary> {
         self.get_many::<OrganizationSummary>(format!("{}/organizations", get_root_url()).as_str(), Some(since), Some(limit))
     }
 
