@@ -45,7 +45,7 @@ println!("{}", tanz_industries.name);
 The tests are essentially E2E tests, as such the following environment variables need to be setup
 ```bash
 export github_token=<personal access token> # Can be obtained via Github UI
-RUST_BACKTRACE=1 #for the stacktraces in test error output
+export RUST_BACKTRACE=1 #for the stacktraces in test error output
 ```
 Tests can then be run using 
 ```bash

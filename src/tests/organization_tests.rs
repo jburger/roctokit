@@ -1,5 +1,4 @@
-use crate::client::{GitHubClient, GitHubClientBuilder};
-use crate::model::Organization;
+use crate::clients::{*, organizations::*};
 use std::env;
 
 const EXPECTED_ORG_NAME: &str = "silentec";
@@ -16,6 +15,20 @@ fn it_retrieves_all_organizations_for_a_user() {
     let client = get_token_auth_client();
     let users_orgs = client.organizations.get_all_for_user();
     assert!(users_orgs.len() > 0);
+}
+
+#[test]
+fn it_retrieves_first_100_organizations() {
+    let client = get_token_auth_client();
+    let orgs = client.organizations.top();
+    assert_eq!(orgs.len(), 100);
+}
+
+#[test]
+fn it_retrieves_a_number_of_organizations() {
+    let client = get_token_auth_client();
+    let orgs = client.organizations.some(1, 42);
+    assert_eq!(orgs.len(), 42);
 }
 
 fn get_test_org() -> Organization {
