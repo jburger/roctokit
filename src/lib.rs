@@ -8,9 +8,7 @@ extern crate serde;
 extern crate reqwest;
 extern crate chrono;
 
-
 pub mod clients;
-pub mod model;
 
 #[cfg(test)]
 mod tests;

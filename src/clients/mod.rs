@@ -3,7 +3,10 @@ use reqwest::{Client};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, AUTHORIZATION};
 use serde::{Deserialize};
 use crate::clients::organizations::OrganizationsClient;
+
 pub mod organizations;
+pub mod repositories;
+
 mod api;
 
 fn get_root_url() -> &'static str {
