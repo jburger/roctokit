@@ -66,6 +66,7 @@ pub(crate) trait ApiClient {
 }
 
 struct Paginator<T> where for<'de> T: serde::Deserialize<'de> {
+    is_first_page: bool,
     count: usize,
     route: String,
     client: Client,
@@ -75,14 +76,66 @@ struct Paginator<T> where for<'de> T: serde::Deserialize<'de> {
     phantom: PhantomData<T>
 }
 
+struct PaginationLinks {
+    next_link: Option<String>,
+    prev_link: Option<String>,
+    first_link: Option<String>,
+    last_link: Option<String>
+}
+
+impl PaginationLinks {
+    fn new(input: String) -> PaginationLinks {
+        let components = input.split(",");
+        let mut pagination_links = PaginationLinks {
+            next_link: None,
+            prev_link: None,
+            first_link: None,
+            last_link: None
+        };
+
+        for c in components {
+            if c.contains("rel=\"next\"") {
+                pagination_links.next_link = extract_link_from_hypermedia(c);
+            }
+            if c.contains("rel=\"prev\'") {
+                pagination_links.prev_link = extract_link_from_hypermedia(c);
+            }
+            if c.contains("rel=\"first\"") {
+                pagination_links.first_link = extract_link_from_hypermedia(c);
+            }
+            if c.contains("rel=\"last\"") {
+                pagination_links.last_link = extract_link_from_hypermedia(c);
+            }
+        }
+
+        return pagination_links;
+
+        fn extract_link_from_hypermedia(c: &str) -> Option<String> {
+            lazy_static! {
+                static ref UNWANTED: Regex = Regex::new(r"[<>]").unwrap();
+            }
+
+            let url_components: Vec<&str> = c.split(";").collect();
+
+            if url_components.len() < 2 {
+                ()
+            }
+
+            let x = UNWANTED.replace_all(url_components[0], "").to_string();
+            Some(x)
+        }
+    }
+}
+
 impl<T> Paginator<T> where for<'de> T: serde::Deserialize<'de> {
     fn new(client: Client, route: String, since: Option<usize>, limit: Option<usize>) -> Paginator<T> {
         Paginator {
+            is_first_page: true,
             count: 0,
             route,
             client,
             since: since.unwrap_or(1),
-            limit: limit.unwrap_or(100),
+            limit: limit.unwrap(),
             next_link: None,
             phantom: PhantomData
         }
@@ -93,13 +146,7 @@ impl<T> Paginator<T> where for<'de> T: serde::Deserialize<'de> {
             let pagination_link: Result<&str, _> = link_header.to_str();
             match pagination_link {
                 Ok(header) => {
-                    let links: Vec<&str> = header.split(";").collect();
-                    if links.len() > 0 {
-                        let rgx = Regex::new(r"[<>]").unwrap();
-                        Some(rgx.replace_all(links[0], "").to_string())
-                    } else {
-                        None
-                    }
+                    PaginationLinks::new(header.to_string()).next_link
                 },
                 Err(e) => panic!(e)
             }
@@ -109,7 +156,7 @@ impl<T> Paginator<T> where for<'de> T: serde::Deserialize<'de> {
     }
 
     fn deserialize_new_items_from<R>(&self, response: &mut Response) -> Vec<R> where for<'de> R: serde::Deserialize<'de> {
-        let deserialized = response.json::<Vec<R>>();
+        let deserialized = response.json();
         let new_items = match deserialized {
             Ok(result) => {
                 result
@@ -126,36 +173,44 @@ impl<T> Iterator for Paginator<T> where for<'de> T: serde::Deserialize<'de> {
     type Item = Vec<T>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let mut response =
-            match &self.next_link {
-                None => {
-                    self.client
+        let response =
+            if self.is_first_page {
+                self.is_first_page = false;
+                Some(self.client
                         .get(format!("{}?since={}", self.route, self.since).as_str())
                         .send()
-                        .unwrap()
-                },
-                Some(next_link) => {
-                    self.client
-                        .get(next_link.as_str())
+                        .unwrap())
+            } else {
+                if let Some(next) = &self.next_link {
+                    let n = next.to_string();
+                    Some(self.client
+                        .get(n.as_str())
                         .send()
-                        .unwrap()
+                        .unwrap())
+                } else {
+                    None
                 }
             };
 
-        let mut new_items = self.deserialize_new_items_from(&mut response);
-        let len = new_items.len();
+        match response {
+            Some(mut r) => {
+                let mut new_items = self.deserialize_new_items_from(&mut r);
+                let len = new_items.len();
 
-        if len == 0 || self.count >= self.limit {
-            None
-        } else if len + self.count > self.limit {
-            let remainder = self.limit - self.count;
-            self.count += remainder;
-            new_items.truncate(remainder);
-            Some(new_items)
-        } else {
-            self.count += new_items.len();
-            self.next_link = self.get_next_link_from(response);
-            Some(new_items)
+                if len == 0 || self.count >= self.limit {
+                    None
+                } else if len + self.count > self.limit {
+                    let remainder = self.limit - self.count;
+                    self.count += remainder;
+                    new_items.truncate(remainder);
+                    Some(new_items)
+                } else {
+                    self.count += new_items.len();
+                    self.next_link = self.get_next_link_from(r);
+                    Some(new_items)
+                }
+            }
+            None => None
         }
     }
 }

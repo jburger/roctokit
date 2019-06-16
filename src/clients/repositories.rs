@@ -1,5 +1,5 @@
 use serde::Deserialize;
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap};
 use crate::clients::api::ApiClient;
 use crate::clients::{get_root_url, GitHubClientOptions};
 
@@ -20,7 +20,7 @@ impl RepositoriesClient {
                     direction = direction.unwrap_or("desc".to_string())
             );
 
-        self.get_many::<Repository>(&self.options, url.as_str(), None, None)
+        self.get_many::<Repository>(&self.options, url.as_str(), None, Some(std::usize::MAX))
     }
 }
 
@@ -79,13 +79,13 @@ pub struct Repository {
     pub svn_url: Option<String>,
     pub homepage: Option<String>,
     pub language: Option<String>,
-    pub forks_count: Option<usize>,
-    pub stargazers_count: Option<usize>,
-    pub watchers_count: Option<usize>,
-    pub size: Option<usize>,
+    pub forks_count: Option<u64>,
+    pub stargazers_count: Option<u64>,
+    pub watchers_count: Option<u64>,
+    pub size: Option<u64>,
     pub default_branch: Option<String>,
-    pub open_issues_count: Option<usize>,
-    pub topics: HashSet<String>,
+    pub open_issues_count: Option<u64>,
+    pub topics: Option<Vec<String>>,
     pub has_issues: bool,
     pub has_projects: bool,
     pub has_wiki: bool,
@@ -96,17 +96,17 @@ pub struct Repository {
     pub pushed_at: Option<String>,
     pub created_at: Option<String>,
     pub updated_at: Option<String>,
-    pub permissions: HashMap<String, bool>,
-    pub subscribers_count: usize,
-    pub network_count: usize,
-    pub license: RepositoryLicense,
+    pub permissions: Option<HashMap<String, bool>>,
+    pub subscribers_count: Option<u64>,
+    pub network_count: Option<u64>,
+    pub license: Option<RepositoryLicense>,
 }
 
 #[derive(Deserialize)]
 pub struct RepositorySummary {
-    pub id: Option<String>,
-    pub node_id: Option<String>,
-    pub name: Option<String>,
+    pub id: u64,
+    pub node_id: String,
+    pub name: String,
     pub full_name: Option<String>,
     pub owner: RepositoryOwner,
     pub private: bool,
@@ -155,8 +155,8 @@ pub struct RepositorySummary {
 
 #[derive(Deserialize)]
 pub struct RepositoryOwner {
-    pub login: String,
-    pub id: String,
+    pub login: Option<String>,
+    pub id: u64,
     pub node_id: Option<String>,
     pub avatar_url: Option<String>,
     pub gravatar_id: Option<String>,

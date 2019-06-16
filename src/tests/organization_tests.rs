@@ -1,4 +1,4 @@
-use crate::tests::{EXPECTED_ORG_NAME, USER_AGENT, get_token_auth_client};
+use crate::tests::{EXPECTED_ORG_NAME, get_token_auth_client};
 
 #[test]
 fn it_finds_organizations_token_auth() {
