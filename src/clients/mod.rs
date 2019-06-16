@@ -1,10 +1,8 @@
-use std::time::Duration;
 use reqwest::{Client};
-use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, AUTHORIZATION};
 use serde::{Deserialize};
+
 use crate::clients::organizations::OrganizationsClient;
 use crate::clients::repositories::RepositoriesClient;
-use std::alloc::rust_oom;
 
 pub mod organizations;
 pub mod repositories;
@@ -15,15 +13,36 @@ fn get_root_url() -> &'static str {
     "https://api.github.com"
 }
 
+lazy_static! {
+    static ref ROOT_DOC: RootDocument = Client::new()
+        .get(get_root_url())
+        .send()
+        .unwrap()
+        .json::<RootDocument>()
+        .unwrap();
+}
+
 pub struct GitHubClient {
     pub organizations: OrganizationsClient,
     pub repositories: RepositoriesClient,
 }
-
 pub struct GitHubClientBuilder {
+    options: GitHubClientOptions,
+}
+pub struct GitHubClientOptions {
     timeout_in_secs: Option<u64>,
     user_agent_string: String,
     token: Option<String>,
+}
+
+impl Clone for GitHubClientOptions {
+    fn clone(&self) -> Self {
+        GitHubClientOptions {
+            timeout_in_secs: self.timeout_in_secs,
+            user_agent_string: self.user_agent_string.clone(),
+            token: self.token.clone()
+        }
+    }
 }
 
 impl GitHubClientBuilder {
@@ -36,9 +55,11 @@ impl GitHubClientBuilder {
     /// ```
     pub fn new() -> GitHubClientBuilder {
         self::GitHubClientBuilder {
-            timeout_in_secs: None,
-            user_agent_string: String::new(),
-            token: None
+            options: GitHubClientOptions {
+                timeout_in_secs: None,
+                user_agent_string: String::new(),
+                token: None
+            }
         }
     }
 
@@ -51,7 +72,7 @@ impl GitHubClientBuilder {
     ///         .with_timeout(20); // 20 seconds
     /// ```
     pub fn with_timeout(&mut self, timeout_in_seconds: u64) -> &mut GitHubClientBuilder {
-        self.timeout_in_secs = Some(timeout_in_seconds);
+        self.options.timeout_in_secs = Some(timeout_in_seconds);
         self
     }
 
@@ -64,7 +85,7 @@ impl GitHubClientBuilder {
     ///         .for_user_agent("roctokit");
     /// ```
     pub fn for_user_agent(&mut self, user_agent_string: &str) -> &mut GitHubClientBuilder {
-        self.user_agent_string = user_agent_string.to_string();
+        self.options.user_agent_string = user_agent_string.to_string();
         self
     }
 
@@ -77,52 +98,20 @@ impl GitHubClientBuilder {
     ///         .with_oauth_token("token goes here");
     /// ```
     pub fn with_oauth_token(&mut self, oauth_token: &str) -> &mut GitHubClientBuilder {
-        self.token = Some(oauth_token.to_string());
+        self.options.token = Some(oauth_token.to_string());
         self
     }
 
     /// Build a `GitHubClient` to begin interrogating the GitHub API```
     pub fn build(&self) -> GitHubClient {
-        let client = self.build_client();
-        let root_document = client.get_root_document();
-
         GitHubClient {
             repositories: RepositoriesClient {
-                client,
-                base_url: root_document.repository_url.unwrap(),
+                options: self.options.clone()
             },
             organizations: OrganizationsClient {
-                client,
-                base_url: root_document.organization_url.unwrap(),
+                options: self.options.clone()
             },
         }
-    }
-
-    fn build_client(&self) -> Client {
-        let builder =
-            reqwest::ClientBuilder::new()
-                .timeout(
-                    Duration::from_secs(self.timeout_in_secs.unwrap_or(10)));
-
-        let mut header_map = HeaderMap::new();
-        header_map.append(
-            USER_AGENT,
-            HeaderValue::from_str(self.user_agent_string.as_str()).unwrap()
-        );
-
-        match &self.token {
-            None => {}
-            Some(token) => {
-                header_map.append(
-                    AUTHORIZATION,
-                    HeaderValue::from_str(format!("token {}", token).as_str()).unwrap());
-            }
-        }
-
-        builder
-            .default_headers(header_map)
-            .build()
-            .unwrap()
     }
 }
 

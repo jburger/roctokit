@@ -1,12 +1,41 @@
 use reqwest::{Client, Response};
 use std::marker::PhantomData;
 use regex::Regex;
+use crate::clients::GitHubClientOptions;
+use std::time::Duration;
+use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, AUTHORIZATION};
 
+//todo: cache the client - learn enough about lifetimes to make a singleton
 pub(crate) trait ApiClient {
-    fn get_client(&self) -> &Client;
+    fn build_client(options: &GitHubClientOptions) -> Client {
+        let builder =
+            reqwest::ClientBuilder::new()
+                .timeout(
+                    Duration::from_secs(options.timeout_in_secs.unwrap_or(10)));
 
-    fn get<T>(&self, route: &str) -> T where for<'de> T: serde::Deserialize<'de> {
-        let result = self.get_client().get(route).send();
+        let mut header_map = HeaderMap::new();
+        header_map.append(
+            USER_AGENT,
+            HeaderValue::from_str(options.user_agent_string.as_str()).unwrap()
+        );
+
+        match &options.token {
+            None => {}
+            Some(token) => {
+                header_map.append(
+                    AUTHORIZATION,
+                    HeaderValue::from_str(format!("token {}", token).as_str()).unwrap());
+            }
+        }
+
+        builder
+            .default_headers(header_map)
+            .build()
+            .unwrap()
+    }
+
+    fn get<T>(&self, options: &GitHubClientOptions, route: &str) -> T where for<'de> T: serde::Deserialize<'de> {
+        let result = Self::build_client(options).get(route).send();
         match result {
             Ok(mut response) => {
                 if !response.status().is_success() {
@@ -26,8 +55,8 @@ pub(crate) trait ApiClient {
         }
     }
 
-    fn get_many<T>(&self, route: &str, since: Option<usize>, limit: Option<usize>) -> Vec<T> where for<'de> T: serde::Deserialize<'de> {
-        let mut paginator = Paginator::<T>::new(self.get_client(), route.to_string(), since, limit);
+    fn get_many<T>(&self, options: &GitHubClientOptions, route: &str, since: Option<usize>, limit: Option<usize>) -> Vec<T> where for<'de> T: serde::Deserialize<'de> {
+        let mut paginator = Paginator::<T>::new(Self::build_client(options), route.to_string(), since, limit);
         let mut all_items = Vec::<T>::new();
         while let Some(mut new_items) = paginator.next() {
             all_items.append(&mut new_items);
@@ -36,18 +65,18 @@ pub(crate) trait ApiClient {
     }
 }
 
-struct Paginator<'a, T> where for<'de> T: serde::Deserialize<'de> {
+struct Paginator<T> where for<'de> T: serde::Deserialize<'de> {
     count: usize,
     route: String,
-    client: &'a Client,
+    client: Client,
     since: usize,
     limit: usize,
     next_link: Option<String>,
     phantom: PhantomData<T>
 }
 
-impl<'a, T> Paginator<'a, T> where for<'de> T: serde::Deserialize<'de> {
-    fn new(client: &Client, route: String, since: Option<usize>, limit: Option<usize>) -> Paginator<T> {
+impl<T> Paginator<T> where for<'de> T: serde::Deserialize<'de> {
+    fn new(client: Client, route: String, since: Option<usize>, limit: Option<usize>) -> Paginator<T> {
         Paginator {
             count: 0,
             route,
@@ -93,7 +122,7 @@ impl<'a, T> Paginator<'a, T> where for<'de> T: serde::Deserialize<'de> {
     }
 }
 
-impl<'a, T> Iterator for Paginator<'a, T> where for<'de> T: serde::Deserialize<'de> {
+impl<T> Iterator for Paginator<T> where for<'de> T: serde::Deserialize<'de> {
     type Item = Vec<T>;
 
     fn next(&mut self) -> Option<Self::Item> {

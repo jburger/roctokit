@@ -1,21 +1,14 @@
 use std::string::ToString;
-use reqwest::Client;
 use serde::{Serialize, Deserialize};
 
-use crate::clients::{api::{ApiClient}, get_root_url, RootClientEx};
-use crate::clients::repositories::Repository;
+use crate::clients::{api::{ApiClient}, get_root_url, GitHubClientOptions};
+use crate::clients::ROOT_DOC;
 
 pub struct OrganizationsClient {
-    pub client: Client,
-    pub base_url: String,
+    pub options: GitHubClientOptions
 }
 
-impl ApiClient for OrganizationsClient {
-    fn get_client(&self) -> &Client {
-        &self.client
-    }
-}
-
+impl ApiClient for OrganizationsClient {}
 impl OrganizationsClient {
     /// Get an organization by name.
     ///
@@ -31,8 +24,8 @@ impl OrganizationsClient {
     /// let github = client.organizations.get_by_name("github");
     /// ```
     pub fn get_by_name(&mut self, name: &str) -> Organization {
-        let url = self.base_url.replace("{org}", name);
-        self.get(url.as_str())
+        let url = ROOT_DOC.organization_url.as_ref().unwrap().replace("{org}", name);
+        self.get(&self.options, url.as_str())
     }
 
     /// Get all organizations for the authenticated user. Must be authenticated.
@@ -51,24 +44,23 @@ impl OrganizationsClient {
     /// # Panics
     /// - When the caller is unauthenticated
     pub fn get_all_for_user(&self) -> Vec<OrganizationSummary> {
-        let url = self.client.get_root_document().user_organizations_url.unwrap();
-        self.get::<Vec<OrganizationSummary>>(url.as_str())
+        self.get::<Vec<OrganizationSummary>>(&self.options, ROOT_DOC.user_organizations_url.as_ref().unwrap())
     }
 
     /// Get all organizations, this can take a while.
     /// todo: asyncrony
     pub fn all(&self) -> Vec<OrganizationSummary> {
-        self.get_many::<OrganizationSummary>(format!("{}/organizations", get_root_url()).as_str(), Some(1), Some(std::usize::MAX))
+        self.get_many::<OrganizationSummary>(&self.options,format!("{}/organizations", get_root_url()).as_str(), Some(1), Some(std::usize::MAX))
     }
 
     /// Get a window of results starting at `since` for a maximum of `limit` items.
     pub fn some(&self, since: usize, limit: usize) -> Vec<OrganizationSummary> {
-        self.get_many::<OrganizationSummary>(format!("{}/organizations", get_root_url()).as_str(), Some(since), Some(limit))
+        self.get_many::<OrganizationSummary>(&self.options,format!("{}/organizations", get_root_url()).as_str(), Some(since), Some(limit))
     }
 
     /// Get the top 100 organization results.
     pub fn top(&self) -> Vec<OrganizationSummary> {
-        self.get_many::<OrganizationSummary>(format!("{}/organizations", get_root_url()).as_str(), Some(1), Some(100))
+        self.get_many::<OrganizationSummary>(&self.options,format!("{}/organizations", get_root_url()).as_str(), Some(1), Some(100))
     }
 
     //
