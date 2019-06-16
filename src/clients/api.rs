@@ -60,23 +60,22 @@ impl<'a, T> Paginator<'a, T> where for<'de> T: serde::Deserialize<'de> {
     }
 
     fn get_next_link_from(&self, r: Response) -> Option<String> {
-        match r.headers().get("Link") {
-            None => None,
-            Some(link_header) => {
-                let pagination_link: Result<&str, _> = link_header.to_str();
-                match pagination_link {
-                    Ok(header) => {
-                        let links: Vec<&str> = header.split(";").collect();
-                        if links.len() > 0 {
-                            let rgx = Regex::new(r"[<>]").unwrap();
-                            Some(rgx.replace_all(links[0], "").to_string())
-                        } else {
-                            None
-                        }
-                    },
-                    Err(e) => panic!(e)
-                }
+        if let Some(link_header) = r.headers().get("Link") {
+            let pagination_link: Result<&str, _> = link_header.to_str();
+            match pagination_link {
+                Ok(header) => {
+                    let links: Vec<&str> = header.split(";").collect();
+                    if links.len() > 0 {
+                        let rgx = Regex::new(r"[<>]").unwrap();
+                        Some(rgx.replace_all(links[0], "").to_string())
+                    } else {
+                        None
+                    }
+                },
+                Err(e) => panic!(e)
             }
+        } else {
+            None
         }
     }
 
