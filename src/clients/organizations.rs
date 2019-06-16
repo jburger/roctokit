@@ -71,18 +71,8 @@ impl OrganizationsClient {
         self.get_many::<OrganizationSummary>(format!("{}/organizations", get_root_url()).as_str(), Some(1), Some(100))
     }
 
-    pub fn repositories(&self, org_name: &str, type_name: Option<String>, sort: Option<String>, direction: Option<String>) -> Vec<Repository> {
-        let url =
-            format!("{root}/orgs/{org_name}/repos?type={type_name}&sort={sort}&direction={direction}",
-                root = get_root_url(),
-                org_name = org_name,
-                type_name = type_name.unwrap_or("all".to_string()),
-                sort = sort.unwrap_or("created".to_string()),
-                direction = direction.unwrap_or("desc".to_string())
-            );
+    //
 
-        self.get_many::<Repository>(url.as_str(), None, None)
-    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -113,7 +103,7 @@ pub struct Organization {
     pub following: Option<u64>,
     pub html_url: String,
     pub created_at: String,
-    pub updated_at: String,
+    pub updated_at: Option<String>,
     #[serde(rename = "type")]
     pub type_name: String,
     pub total_private_repos: Option<u64>,

@@ -1,6 +1,36 @@
 use serde::Deserialize;
-use chrono::{DateTime, Utc};
 use std::collections::{HashMap, HashSet};
+use crate::clients::api::ApiClient;
+use reqwest::Client;
+
+pub struct RepositoriesClient {
+    pub client: Client,
+    pub base_url: String,
+}
+
+impl ApiClient for RepositoriesClient {
+    fn get_client(&self) -> &Client {
+        &self.client
+    }
+}
+
+impl RepositoriesClient {
+
+}
+
+
+fn for_org(&self, org_name: &str, type_name: Option<String>, sort: Option<String>, direction: Option<String>) -> Vec<Repository> {
+    let url =
+        format!("{root}/orgs/{org_name}/repos?type={type_name}&sort={sort}&direction={direction}",
+                root = get_root_url(),
+                org_name = org_name,
+                type_name = type_name.unwrap_or("all".to_string()),
+                sort = sort.unwrap_or("created".to_string()),
+                direction = direction.unwrap_or("desc".to_string())
+        );
+
+    self.get_many::<Repository>(url.as_str(), None, None)
+}
 
 #[derive(Deserialize)]
 pub struct Repository {
@@ -71,9 +101,9 @@ pub struct Repository {
     pub has_downloads: bool,
     pub archived: bool,
     pub disabled: bool,
-    pub pushed_at: DateTime<Utc>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub pushed_at: Option<String>,
+    pub created_at: Option<String>,
+    pub updated_at: Option<String>,
     pub permissions: HashMap<String, bool>,
     pub subscribers_count: usize,
     pub network_count: usize,

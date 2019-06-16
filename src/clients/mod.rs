@@ -3,6 +3,8 @@ use reqwest::{Client};
 use reqwest::header::{HeaderMap, HeaderValue, USER_AGENT, AUTHORIZATION};
 use serde::{Deserialize};
 use crate::clients::organizations::OrganizationsClient;
+use crate::clients::repositories::RepositoriesClient;
+use std::alloc::rust_oom;
 
 pub mod organizations;
 pub mod repositories;
@@ -15,6 +17,7 @@ fn get_root_url() -> &'static str {
 
 pub struct GitHubClient {
     pub organizations: OrganizationsClient,
+    pub repositories: RepositoriesClient,
 }
 
 pub struct GitHubClientBuilder {
@@ -84,6 +87,10 @@ impl GitHubClientBuilder {
         let root_document = client.get_root_document();
 
         GitHubClient {
+            repositories: RepositoriesClient {
+                client,
+                base_url: root_document.repository_url.unwrap(),
+            },
             organizations: OrganizationsClient {
                 client,
                 base_url: root_document.organization_url.unwrap(),
