@@ -3,6 +3,7 @@ use reqwest::Client;
 use serde::{Serialize, Deserialize};
 
 use crate::clients::{api::{ApiClient}, get_root_url, RootClientEx};
+use crate::clients::repositories::Repository;
 
 pub struct OrganizationsClient {
     pub client: Client,
@@ -68,6 +69,19 @@ impl OrganizationsClient {
     /// Get the top 100 organization results.
     pub fn top(&self) -> Vec<OrganizationSummary> {
         self.get_many::<OrganizationSummary>(format!("{}/organizations", get_root_url()).as_str(), Some(1), Some(100))
+    }
+
+    pub fn repositories(&self, org_name: &str, type_name: Option<String>, sort: Option<String>, direction: Option<String>) -> Vec<Repository> {
+        let url =
+            format!("{root}/orgs/{org_name}/repos?type={type_name}&sort={sort}&direction={direction}",
+                root = get_root_url(),
+                org_name = org_name,
+                type_name = type_name.unwrap_or("all".to_string()),
+                sort = sort.unwrap_or("created".to_string()),
+                direction = direction.unwrap_or("desc".to_string())
+            );
+
+        self.get_many::<Repository>(url.as_str(), None, None)
     }
 }
 

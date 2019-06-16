@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use std::collections::{HashMap, HashSet};
 
 #[derive(Deserialize)]
-struct Repository {
+pub struct Repository {
     pub id: u64,
     pub node_id: Option<String>,
     pub name: Option<String>,
@@ -71,9 +71,9 @@ struct Repository {
     pub has_downloads: bool,
     pub archived: bool,
     pub disabled: bool,
-    pub pushed_at: Option<DateTime<Utc>>,
-    pub created_at: Option<DateTime<Utc>>,
-    pub updated_at: Option<DateTime<Utc>>,
+    pub pushed_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
     pub permissions: HashMap<String, bool>,
     pub subscribers_count: usize,
     pub network_count: usize,
@@ -81,7 +81,7 @@ struct Repository {
 }
 
 #[derive(Deserialize)]
-struct RepositorySummary {
+pub struct RepositorySummary {
     pub id: Option<String>,
     pub node_id: Option<String>,
     pub name: Option<String>,
@@ -132,7 +132,7 @@ struct RepositorySummary {
 }
 
 #[derive(Deserialize)]
-struct RepositoryOwner {
+pub struct RepositoryOwner {
     pub login: String,
     pub id: String,
     pub node_id: Option<String>,
@@ -155,7 +155,7 @@ struct RepositoryOwner {
 }
 
 #[derive(Deserialize)]
-struct RepositoryLicense {
+pub struct RepositoryLicense {
     pub key: Option<String>,
     pub name: Option<String>,
     pub spdx_id: Option<String>,
