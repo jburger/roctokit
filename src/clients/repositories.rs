@@ -1,35 +1,27 @@
 use serde::Deserialize;
 use std::collections::{HashMap, HashSet};
 use crate::clients::api::ApiClient;
-use reqwest::Client;
+use crate::clients::{get_root_url, GitHubClientOptions};
 
 pub struct RepositoriesClient {
-    pub client: Client,
-    pub base_url: String,
+    pub options: GitHubClientOptions,
 }
 
-impl ApiClient for RepositoriesClient {
-    fn get_client(&self) -> &Client {
-        &self.client
-    }
-}
+impl ApiClient for RepositoriesClient {}
 
 impl RepositoriesClient {
+    pub(crate) fn for_org_name(&self, org_name: &str, type_name: Option<String>, sort: Option<String>, direction: Option<String>) -> Vec<Repository> {
+        let url =
+            format!("{root}/orgs/{org_name}/repos?type={type_name}&sort={sort}&direction={direction}",
+                    root = get_root_url(),
+                    org_name = org_name,
+                    type_name = type_name.unwrap_or("all".to_string()),
+                    sort = sort.unwrap_or("created".to_string()),
+                    direction = direction.unwrap_or("desc".to_string())
+            );
 
-}
-
-
-fn for_org(&self, org_name: &str, type_name: Option<String>, sort: Option<String>, direction: Option<String>) -> Vec<Repository> {
-    let url =
-        format!("{root}/orgs/{org_name}/repos?type={type_name}&sort={sort}&direction={direction}",
-                root = get_root_url(),
-                org_name = org_name,
-                type_name = type_name.unwrap_or("all".to_string()),
-                sort = sort.unwrap_or("created".to_string()),
-                direction = direction.unwrap_or("desc".to_string())
-        );
-
-    self.get_many::<Repository>(url.as_str(), None, None)
+        self.get_many::<Repository>(&self.options, url.as_str(), None, None)
+    }
 }
 
 #[derive(Deserialize)]
