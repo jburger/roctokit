@@ -1,7 +1,8 @@
 use serde::Deserialize;
 use std::collections::{HashMap};
 use crate::clients::api::ApiClient;
-use crate::clients::{get_root_url, GitHubClientOptions};
+use crate::clients::{get_root_url, GitHubClientOptions, ROOT_DOC, RootDocument};
+use crate::clients::organizations::OrganizationSummary;
 
 pub struct RepositoriesClient {
     pub options: GitHubClientOptions,
@@ -10,6 +11,14 @@ pub struct RepositoriesClient {
 impl ApiClient for RepositoriesClient {}
 
 impl RepositoriesClient {
+    pub fn for_user(&self, user: &str) -> Vec<RepositorySummary> {
+        let template : String = ROOT_DOC.user_repositories_url.as_ref().unwrap();
+        //.as_ref().unwrap().to_string();
+        //let route = template.split("{");
+        //.collect()[0].replace("{user}", user);
+        self.get::<Vec<RepositorySummary>>(&self.options, template.unwrap().as_str())
+    }
+
     pub(crate) fn for_org_name(&self, org_name: &str, type_name: Option<String>, sort: Option<String>, direction: Option<String>) -> Vec<Repository> {
         let url =
             format!("{root}/orgs/{org_name}/repos?type={type_name}&sort={sort}&direction={direction}",

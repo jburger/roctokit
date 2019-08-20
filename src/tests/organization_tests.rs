@@ -10,7 +10,7 @@ fn it_finds_organizations_token_auth() {
 #[test]
 fn it_retrieves_all_organizations_for_a_user() {
     let client = get_token_auth_client();
-    let users_orgs = client.organizations.get_all_for_user();
+    let users_orgs = client.organizations.for_user();
     assert!(users_orgs.len() > 0);
 }
 

@@ -39,11 +39,11 @@ impl OrganizationsClient {
     ///     .with_oauth_token(env::var("github_token").unwrap().as_str())
     ///     .build();
     ///
-    /// let github = client.organizations.get_all_for_user();
+    /// let github = client.organizations.for_user();
     /// ```
     /// # Panics
     /// - When the caller is unauthenticated
-    pub fn get_all_for_user(&self) -> Vec<OrganizationSummary> {
+    pub fn for_user(&self) -> Vec<OrganizationSummary> {
         self.get::<Vec<OrganizationSummary>>(&self.options, ROOT_DOC.user_organizations_url.as_ref().unwrap())
     }
 
