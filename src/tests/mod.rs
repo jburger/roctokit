@@ -1,1 +1,1 @@
-mod organization_tests;
+mod e2e_readonly_tests;

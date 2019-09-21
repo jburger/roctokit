@@ -1,13 +1,13 @@
 use crate::clients::{*, organizations::*};
 use std::env;
 
-const EXPECTED_ORG_NAME: &str = "silentec";
+const EXPECTED_ORG_NAME: &str = "github";
 const USER_AGENT: &str = "roctokit";
 
 #[test]
 fn it_finds_organizations_token_auth() {
     let organization_result = get_test_org();
-    assert_eq!(organization_result.to_string(), "org: silentec 24204496  https://api.github.com/orgs/silentec");
+    assert_eq!(organization_result.to_string(), "org: GitHub 9919 How people build software. https://api.github.com/orgs/github");
 }
 
 #[test]
