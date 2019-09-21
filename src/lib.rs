@@ -7,7 +7,7 @@ extern crate serde_json;
 extern crate serde;
 extern crate reqwest;
 extern crate chrono;
-
+extern crate regex;
 
 pub mod clients;
 pub mod model;
